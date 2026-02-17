@@ -11,16 +11,27 @@
         .slogan { font-style: italic; color: #aaa; font-size: 0.8rem; margin-bottom: 20px; }
         input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #444; box-sizing: border-box; background: #333; color: white; }
         button { width: 100%; padding: 14px; background: #ffcc00; border: none; font-weight: bold; cursor: pointer; border-radius: 6px; margin-top: 15px; }
-        .toggle { margin-top: 20px; font-size: 0.85rem; color: #ffcc00; cursor: pointer; text-decoration: underline; }
         
-        /* Dashboard Styling - Hidden by default */
         #dashboard { display: none; text-align: left; max-width: 800px; width: 95%; margin: 20px; }
         .card { background: #262626; padding: 20px; border-radius: 12px; margin-bottom: 15px; border-left: 5px solid #ffcc00; }
+        
+        /* Developer UI */
+        .admin-card { background: #1e3a5f; border-left: 5px solid #00d4ff; display: none; padding: 20px; border-radius: 12px; margin-bottom: 15px; }
+        .dev-badge { background: #00d4ff; color: #1a1a1a; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; vertical-align: middle; }
+
         .price-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .price-card { background: #333; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #444; font-size: 0.9rem; }
+        .price-card { background: #333; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #444; cursor: pointer; }
         .price-card b { color: #ffcc00; display: block; }
+        
+        /* Payment Modal */
+        #payment-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-box { background: #262626; padding: 25px; border-radius: 15px; text-align: center; border: 2px solid #ffcc00; width: 320px; }
+        .gcash-qr { width: 100%; border-radius: 10px; margin: 15px 0; border: 5px solid white; box-sizing: border-box; }
+        
+        .btn-paid { background: #28a745; color: white; }
         .btn-logout { background: #ff4444; width: auto; padding: 8px 15px; float: right; color: white; margin-bottom: 10px; }
         .hidden { display: none; }
+        .toggle { margin-top: 20px; font-size: 0.85rem; color: #ffcc00; cursor: pointer; text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -46,16 +57,22 @@
 
     <div id="dashboard">
         <button class="btn-logout" onclick="logoutUser()">LOGOUT</button>
-        <h1>PAWALAT</h1>
+        <h1>PAWALAT <span id="dev-tag" class="dev-badge" style="display:none;">DEVELOPER</span></h1>
         <div class="slogan">"kung sain mapapagaan ang gabat mong dara!"</div>
+
+        <div id="admin-panel" class="admin-card">
+            <h3>Developer Control Panel</h3>
+            <p>Welcome, Admin. Access user data in the console.</p>
+            <button onclick="window.open('https://console.firebase.google.com/')" style="width:auto; padding:10px;">Open Firebase Console</button>
+        </div>
 
         <div class="card">
             <h3>Subscription Plans</h3>
             <div class="price-grid">
-                <div class="price-card">1 Week <b>PhP 79.00</b></div>
-                <div class="price-card">1 Month <b>PhP 279.00</b></div>
-                <div class="price-card">6 Months <b>PhP 779.00</b></div>
-                <div class="price-card">1 Year <b>PhP 1,779.00</b></div>
+                <div class="price-card" onclick="showPayment('1 Week', '79.00')">1 Week <b>PhP 79.00</b></div>
+                <div class="price-card" onclick="showPayment('1 Month', '279.00')">1 Month <b>PhP 279.00</b></div>
+                <div class="price-card" onclick="showPayment('6 Months', '779.00')">6 Months <b>PhP 779.00</b></div>
+                <div class="price-card" onclick="showPayment('1 Year', '1,779.00')">1 Year <b>PhP 1,779.00</b></div>
             </div>
         </div>
 
@@ -63,11 +80,20 @@
             <h3>Locker Rules & Terms</h3>
             <ul style="font-size: 0.85rem; line-height: 1.6;">
                 <li>Secure your belongings: Lock your locker before leaving.</li>
-                <li>No writing or marking on lockers, inside or outside.</li>
                 <li>Respect others' lockers: Don't tamper without permission.</li>
-                <li>Report issues: Inform authorities if you encounter problems.</li>
                 <li>Liability: Not responsible for lost or stolen items.</li>
             </ul>
+        </div>
+    </div>
+
+    <div id="payment-modal">
+        <div class="modal-box">
+            <h2 id="plan-name" style="color:#ffcc00; margin-bottom:5px;">Plan</h2>
+            <p>Total: <b id="plan-price">PhP 0.00</b></p>
+            <img src="https://raw.githubusercontent.com/PawalatAdmin/locker-room/main/58e9eda6-cbbb-46ca-8275-b1dcda0b5a1e.jpg" class="gcash-qr" alt="GCash QR">
+            <p><b>MA*Y RO*E L.</b><br><small>0985 801 ****</small></p>
+            <button class="btn-paid" onclick="window.location.href='https://forms.gle/UMAnVBHDefJ1S824A'">I'VE PAID</button>
+            <button onclick="document.getElementById('payment-modal').style.display='none'" style="background:none; color:#aaa; border:none; margin-top:10px; cursor:pointer;">Cancel</button>
         </div>
     </div>
 
@@ -89,58 +115,56 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  const authSection = document.getElementById('auth-section');
-  const dashboard = document.getElementById('dashboard');
-  const authBtn = document.getElementById('authBtn');
-  const toggleView = document.getElementById('toggleView');
-  const regFields = document.getElementById('reg-fields');
-  
-  let isLogin = true;
+  const developers = ["drawdrew79@gmail.com", "danicapadua754@gmail.com"];
 
-  // UI Toggle Logic
-  toggleView.onclick = () => {
-    isLogin = !isLogin;
-    authBtn.innerText = isLogin ? "LOGIN TO ACCESS" : "CREATE ACCOUNT";
-    document.getElementById('status-msg').innerText = isLogin ? "Log in to your account" : "Register your details";
-    toggleView.innerText = isLogin ? "Need an account? Register here" : "Already have an account? Login";
-    regFields.classList.toggle('hidden');
-  };
-
-  // Auth Listener: Handles the "Magic" of swapping views
   onAuthStateChanged(auth, (user) => {
     if (user) {
-        authSection.style.display = 'none';
-        dashboard.style.display = 'block';
+        document.getElementById('auth-section').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
         document.body.style.alignItems = 'flex-start';
+        if (developers.includes(user.email)) {
+            document.getElementById('admin-panel').style.display = 'block';
+            document.getElementById('dev-tag').style.display = 'inline-block';
+        }
     } else {
-        authSection.style.display = 'block';
-        dashboard.style.display = 'none';
+        document.getElementById('auth-section').style.display = 'block';
+        document.getElementById('dashboard').style.display = 'none';
         document.body.style.alignItems = 'center';
     }
   });
 
-  // Action Logic
-  authBtn.onclick = async () => {
+  document.getElementById('toggleView').onclick = () => {
+    const reg = document.getElementById('reg-fields');
+    const btn = document.getElementById('authBtn');
+    reg.classList.toggle('hidden');
+    btn.innerText = reg.classList.contains('hidden') ? "LOGIN TO ACCESS" : "CREATE ACCOUNT";
+    document.getElementById('status-msg').innerText = reg.classList.contains('hidden') ? "Log in to your account" : "Register your details";
+  };
+
+  document.getElementById('authBtn').onclick = async () => {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
-
     try {
-      if (isLogin) {
+      if (document.getElementById('authBtn').innerText.includes("LOGIN")) {
         await signInWithEmailAndPassword(auth, email, password);
       } else {
         const res = await createUserWithEmailAndPassword(auth, email, password);
         await setDoc(doc(db, "users", res.user.uid), {
           fullName: document.getElementById('fullName').value,
           phone: document.getElementById('phone').value,
-          age: document.getElementById('age').value,
-          address: document.getElementById('address').value,
-          email: email
+          email: email,
+          role: developers.includes(email) ? "developer" : "customer"
         });
       }
     } catch (e) { alert(e.message); }
   };
 
   window.logoutUser = () => signOut(auth);
+  window.showPayment = (plan, price) => {
+    document.getElementById('plan-name').innerText = plan;
+    document.getElementById('plan-price').innerText = "PhP " + price;
+    document.getElementById('payment-modal').style.display = 'flex';
+  };
 </script>
 </body>
 </html>
