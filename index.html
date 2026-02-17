@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PAWALAT - Locker Room</title>
+    <title>PAWALAT - Locker Room Access</title>
     <style>
-        /* Mobile-First Design */
         body { 
             font-family: 'Segoe UI', sans-serif; 
             background: #1a1a1a; 
             color: white; 
             margin: 0; 
-            padding: 20px;
+            padding: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -19,44 +18,42 @@
         .container, #dashboard { 
             width: 100%; 
             max-width: 400px; 
-            margin-top: 20px;
+            margin-top: 10px;
         }
         .card, .auth-box { 
             background: #262626; 
-            padding: 25px; 
+            padding: 20px; 
             border-radius: 15px; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
             margin-bottom: 20px;
             border-left: 5px solid #ffcc00;
         }
         h1 { color: #ffcc00; margin: 0; text-align: center; }
+        h3 { color: #ffcc00; margin-top: 0; border-bottom: 1px solid #444; padding-bottom: 8px; }
         .slogan { font-style: italic; color: #aaa; font-size: 0.8rem; text-align: center; margin-bottom: 20px; }
         
-        /* Inputs & Buttons */
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #444; background: #333; color: white; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; background: #ffcc00; border: none; font-weight: bold; cursor: pointer; border-radius: 8px; margin-top: 10px; font-size: 1rem; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #444; background: #333; color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 14px; background: #ffcc00; border: none; font-weight: bold; cursor: pointer; border-radius: 8px; margin-top: 10px; font-size: 1rem; }
         
-        /* Subscription List - Better for Mobile */
         .price-item { 
             background: #333; 
-            padding: 18px; 
-            margin: 12px 0; 
+            padding: 15px; 
+            margin: 10px 0; 
             border-radius: 10px; 
             text-align: center; 
             border: 1px solid #444; 
             cursor: pointer;
-            transition: 0.2s;
-            -webkit-tap-highlight-color: transparent;
         }
-        .price-item:active { background: #444; border-color: #ffcc00; }
-        .price-item b { color: #ffcc00; font-size: 1.2rem; display: block; }
+        .price-item b { color: #ffcc00; font-size: 1.1rem; display: block; }
 
-        /* Payment Modal */
+        .rules-list { padding-left: 20px; font-size: 0.85rem; line-height: 1.6; color: #ddd; }
+        .rules-list li { margin-bottom: 8px; }
+
         #payment-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); justify-content: center; align-items: center; z-index: 9999; padding: 20px; box-sizing: border-box; }
         .modal-box { background: #262626; padding: 25px; border-radius: 15px; text-align: center; border: 2px solid #ffcc00; width: 100%; max-width: 320px; }
         .gcash-qr { width: 100%; border-radius: 10px; margin: 15px 0; border: 4px solid white; }
         
-        .btn-logout { background: #ff4444; width: auto; padding: 8px 15px; float: right; font-size: 0.8rem; margin-bottom: 10px; }
+        .btn-logout { background: #ff4444; width: auto; padding: 6px 12px; float: right; font-size: 0.75rem; color: white; border-radius: 5px; margin-bottom: 10px; }
         .hidden { display: none; }
     </style>
 </head>
@@ -82,15 +79,26 @@
 
     <div id="dashboard" class="hidden">
         <button class="btn-logout" onclick="logoutUser()">LOGOUT</button>
-        <h1 style="text-align:left;">PAWALAT <span id="dev-tag" style="display:none; font-size:0.6rem; background:#00d4ff; color:black; padding:2px 5px; border-radius:4px;">DEV</span></h1>
+        <h1 style="text-align:left; font-size: 1.5rem;">PAWALAT <span id="dev-tag" style="display:none; font-size:0.6rem; background:#00d4ff; color:black; padding:2px 5px; border-radius:4px;">DEV</span></h1>
         
         <div class="card">
             <h3>Subscription Plans</h3>
-            <p style="font-size:0.8rem; color:#aaa;">Tap a plan to pay:</p>
             <div class="price-item" onclick="showPayment('1 Week', '79.00')">1 Week <b>PhP 79.00</b></div>
             <div class="price-item" onclick="showPayment('1 Month', '279.00')">1 Month <b>PhP 279.00</b></div>
             <div class="price-item" onclick="showPayment('6 Months', '779.00')">6 Months <b>PhP 779.00</b></div>
             <div class="price-item" onclick="showPayment('1 Year', '1,779.00')">1 Year <b>PhP 1,779.00</b></div>
+        </div>
+
+        <div class="card">
+            <h3>Locker Rules & Terms</h3>
+            <ul class="rules-list">
+                <li><b>Secure your belongings:</b> Lock your locker before leaving.</li>
+                <li><b>No Vandalism:</b> No writing or marking on lockers, inside or outside.</li>
+                <li><b>Respect Privacy:</b> Don't tamper or open others' lockers without permission.</li>
+                <li><b>Report Issues:</b> Inform authorities if you encounter problems.</li>
+                <li><b>Clean Up:</b> Keep your locker tidy and remove contents when expired.</li>
+                <li><b>Liability:</b> Not responsible for lost or stolen items.</li>
+            </ul>
         </div>
     </div>
 
@@ -100,7 +108,7 @@
             <p>Amount: <b id="plan-price">PhP 0.00</b></p>
             <img src="https://raw.githubusercontent.com/PawalatAdmin/locker-room/main/58e9eda6-cbbb-46ca-8275-b1dcda0b5a1e.jpg" class="gcash-qr" alt="GCash QR">
             <p><b>MA*Y RO*E L.</b><br>0985 801 ****</p>
-            <button onclick="window.location.href='https://forms.gle/UMAnVBHDefJ1S824A'" style="background:#28a745;">I'VE PAID</button>
+            <button onclick="window.location.href='https://forms.gle/UMAnVBHDefJ1S824A'" style="background:#28a745; color:white;">I'VE PAID</button>
             <button onclick="document.getElementById('payment-modal').style.display='none'" style="background:none; color:#aaa; border:none; margin-top:10px;">Cancel</button>
         </div>
     </div>
