@@ -5,118 +5,106 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PAWALAT - Locker Room Access</title>
     <style>
-        body { 
-            font-family: 'Segoe UI', sans-serif; 
-            background: #1a1a1a; 
-            color: white; 
-            margin: 0; 
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .container, #dashboard { 
-            width: 100%; 
-            max-width: 400px; 
-            margin-top: 10px;
-        }
-        .card, .auth-box { 
-            background: #262626; 
-            padding: 20px; 
-            border-radius: 15px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            margin-bottom: 20px;
-            border-left: 5px solid #ffcc00;
-        }
-        h1 { color: #ffcc00; margin: 0; text-align: center; }
-        h3 { color: #ffcc00; margin-top: 0; border-bottom: 1px solid #444; padding-bottom: 8px; }
-        .slogan { font-style: italic; color: #aaa; font-size: 0.8rem; text-align: center; margin-bottom: 20px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #1a1a1a; color: white; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+        .container, #dashboard { width: 100%; max-width: 450px; }
+        .card { background: #262626; padding: 20px; border-radius: 15px; margin-bottom: 20px; border-left: 5px solid #ffcc00; box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
+        .admin-card { border-left-color: #00d4ff; background: #1a2a3a; display: none; }
+        h1, h3 { color: #ffcc00; text-align: center; margin: 5px 0; }
         
-        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #444; background: #333; color: white; box-sizing: border-box; }
-        button { width: 100%; padding: 14px; background: #ffcc00; border: none; font-weight: bold; cursor: pointer; border-radius: 8px; margin-top: 10px; font-size: 1rem; }
+        /* 50 Locker Grid */
+        .slot-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 15px; }
+        .slot { background: #333; border: 1px solid #444; border-radius: 5px; padding: 12px 0; text-align: center; font-size: 0.8rem; cursor: pointer; transition: 0.3s; }
         
-        .price-item { 
-            background: #333; 
-            padding: 15px; 
-            margin: 10px 0; 
-            border-radius: 10px; 
-            text-align: center; 
-            border: 1px solid #444; 
-            cursor: pointer;
-        }
-        .price-item b { color: #ffcc00; font-size: 1.1rem; display: block; }
+        /* Status Colors */
+        .slot.available { color: #28a745; border-color: #28a745; }
+        .slot.occupied { background: #b32d2d !important; color: white !important; border-color: #ff4444 !important; cursor: not-allowed; pointer-events: none; }
+        .slot.pending { background: #b38f00 !important; color: white !important; border-color: #ffcc00 !important; pointer-events: none; }
 
         .rules-list { padding-left: 20px; font-size: 0.85rem; line-height: 1.6; color: #ddd; }
         .rules-list li { margin-bottom: 8px; }
 
-        #payment-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); justify-content: center; align-items: center; z-index: 9999; padding: 20px; box-sizing: border-box; }
-        .modal-box { background: #262626; padding: 25px; border-radius: 15px; text-align: center; border: 2px solid #ffcc00; width: 100%; max-width: 320px; }
-        .gcash-qr { width: 100%; border-radius: 10px; margin: 15px 0; border: 4px solid white; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #444; background: #333; color: white; box-sizing: border-box; font-size: 1rem; }
+        button { width: 100%; padding: 14px; background: #ffcc00; border: none; font-weight: bold; cursor: pointer; border-radius: 8px; margin-top: 10px; }
         
-        .btn-logout { background: #ff4444; width: auto; padding: 6px 12px; float: right; font-size: 0.75rem; color: white; border-radius: 5px; margin-bottom: 10px; }
+        #payment-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); justify-content: center; align-items: center; z-index: 9999; padding: 20px; box-sizing: border-box; }
+        .modal-box { background: #262626; padding: 25px; border-radius: 15px; text-align: center; border: 2px solid #ffcc00; width: 100%; max-width: 350px; }
+        .btn-logout { background: #ff4444; width: auto; padding: 6px 12px; float: right; color: white; font-size: 0.7rem; border-radius: 5px; }
+        
+        /* Admin Management Styling */
+        .dev-item { background: #333; padding: 10px; margin-bottom: 8px; border-radius: 8px; border: 1px solid #444; font-size: 0.85rem; }
+        .btn-unlock { background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; float: right; font-size: 0.75rem; }
         .hidden { display: none; }
     </style>
 </head>
 <body>
 
-    <div id="auth-section" class="auth-box container">
+    <div id="auth-section" class="card container">
         <h1>PAWALAT</h1>
-        <div class="slogan">"kung sain mapapagaan ang gabat mong dara!"</div>
-        
         <div id="reg-fields" class="hidden">
             <input type="text" id="fullName" placeholder="Full Name">
             <input type="text" id="phone" placeholder="Phone Number">
-            <input type="number" id="age" placeholder="Age">
-            <input type="text" id="address" placeholder="Address">
         </div>
-
         <input type="email" id="email" placeholder="Email Address">
         <input type="password" id="password" placeholder="Password">
-        
-        <button id="authBtn">LOGIN TO ACCESS</button>
-        <p onclick="toggleAuth()" style="text-decoration:underline; font-size:0.8rem; cursor:pointer; text-align:center; color:#ffcc00; margin-top:15px;">Need an account? Register here</p>
+        <button id="authBtn">LOGIN</button>
+        <p onclick="toggleAuth()" style="text-decoration:underline; font-size:0.8rem; cursor:pointer; text-align:center; color:#ffcc00; margin-top:15px;">Need an account? Register</p>
     </div>
 
     <div id="dashboard" class="hidden">
         <button class="btn-logout" onclick="logoutUser()">LOGOUT</button>
-        <h1 style="text-align:left; font-size: 1.5rem;">PAWALAT <span id="dev-tag" style="display:none; font-size:0.6rem; background:#00d4ff; color:black; padding:2px 5px; border-radius:4px;">DEV</span></h1>
+        <h1 style="text-align:left;">PAWALAT <span id="dev-tag" style="display:none; font-size:0.6rem; background:#00d4ff; color:black; padding:2px 5px; border-radius:4px;">DEV</span></h1>
         
-        <div class="card">
-            <h3>Subscription Plans</h3>
-            <div class="price-item" onclick="showPayment('1 Week', '79.00')">1 Week <b>PhP 79.00</b></div>
-            <div class="price-item" onclick="showPayment('1 Month', '279.00')">1 Month <b>PhP 279.00</b></div>
-            <div class="price-item" onclick="showPayment('6 Months', '779.00')">6 Months <b>PhP 779.00</b></div>
-            <div class="price-item" onclick="showPayment('1 Year', '1,779.00')">1 Year <b>PhP 1,779.00</b></div>
+        <div id="admin-panel" class="card admin-card">
+            <h3>Admin Management</h3>
+            <p style="font-size: 0.75rem; color: #aaa;">Pending Requests:</p>
+            <div id="request-list">No new requests.</div>
+            <hr style="border: 0.5px solid #444; margin: 15px 0;">
+            <p style="font-size: 0.75rem; color: #aaa;">Active Lockers (Occupied):</p>
+            <div id="occupied-list">No occupied slots.</div>
         </div>
 
         <div class="card">
-            <h3>Locker Rules & Terms</h3>
+            <h3>Locker Selection (50 Slots)</h3>
+            <div id="locker-grid" class="slot-grid"></div>
+        </div>
+
+        <div class="card">
+            <h3>Locker Rules and Terms of Use</h3>
             <ul class="rules-list">
-                <li><b>Secure your belongings:</b> Lock your locker before leaving.</li>
-                <li><b>No Vandalism:</b> No writing or marking on lockers, inside or outside.</li>
-                <li><b>Respect Privacy:</b> Don't tamper or open others' lockers without permission.</li>
-                <li><b>Report Issues:</b> Inform authorities if you encounter problems.</li>
-                <li><b>Clean Up:</b> Keep your locker tidy and remove contents when expired.</li>
-                <li><b>Liability:</b> Not responsible for lost or stolen items.</li>
+                <li><b>1. Secure your belongings:</b> Lock your locker before leaving.</li>
+                <li><b>2. No writing:</b> No writing or marking on lockers, inside or outside.</li>
+                <li><b>3. Respect:</b> Don't tamper or open without permission.</li>
+                <li><b>4. Report:</b> Inform authorities if you encounter problems.</li>
+                <li><b>5. Clean up:</b> Keep your locker tidy and remove contents when expired.</li>
+                <li><b>6. Liability:</b> Not responsible for lost or stolen items.</li>
             </ul>
         </div>
     </div>
 
     <div id="payment-modal">
         <div class="modal-box">
-            <h2 id="plan-name" style="color:#ffcc00; margin:0;">Plan</h2>
-            <p>Amount: <b id="plan-price">PhP 0.00</b></p>
-            <img src="https://raw.githubusercontent.com/PawalatAdmin/locker-room/main/58e9eda6-cbbb-46ca-8275-b1dcda0b5a1e.jpg" class="gcash-qr" alt="GCash QR">
-            <p><b>MA*Y RO*E L.</b><br>0985 801 ****</p>
-            <button onclick="window.location.href='https://forms.gle/UMAnVBHDefJ1S824A'" style="background:#28a745; color:white;">I'VE PAID</button>
-            <button onclick="document.getElementById('payment-modal').style.display='none'" style="background:none; color:#aaa; border:none; margin-top:10px;">Cancel</button>
+            <h2 id="modal-title" style="color:#ffcc00; margin:0;">Locker #</h2>
+            <div style="background: #333; padding: 15px; border-radius: 10px; margin: 15px 0; border: 1px dashed #ffcc00;">
+                <p style="margin:0; font-size:0.8rem; color:#aaa;">Send GCash to:</p>
+                <h3 style="margin:5px 0;">Mary Rose Llacuna</h3>
+                <h2 style="margin:0; color:#ffcc00;">09858010422</h2>
+            </div>
+            <select id="plan-choice">
+                <option value="79">1 Week - PhP 79.00</option>
+                <option value="279">1 Month - PhP 279.00</option>
+                <option value="779">6 Months - PhP 779.00</option>
+                <option value="1779">1 Year - PhP 1,779.00</option>
+            </select>
+            <input type="file" id="receipt-upload" accept="image/*">
+            <button id="submitPayBtn" style="background:#28a745; color:white;">SUBMIT RECEIPT</button>
+            <button onclick="document.getElementById('payment-modal').style.display='none'" style="background:none; border:none; color:#aaa; margin-top:10px;">Cancel</button>
         </div>
     </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { getFirestore, doc, setDoc, onSnapshot, collection, updateDoc, addDoc, query, where, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBpfwXy5BXCMGJEF7j-IFbv9Z-YFs_UQsE",
@@ -130,48 +118,104 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
-  const developers = ["drawdrew79@gmail.com", "danicapadua754@gmail.com"];
+  const devEmails = ["drawdrew79@gmail.com", "danicapadua754@gmail.com"];
+  let selectedSlot = null;
+
+  // Real-time Locker Grid Logic
+  onSnapshot(collection(db, "lockers"), (snapshot) => {
+    const grid = document.getElementById('locker-grid');
+    const occList = document.getElementById('occupied-list');
+    grid.innerHTML = '';
+    occList.innerHTML = '';
+    
+    const lockerData = {};
+    snapshot.forEach(doc => {
+        lockerData[doc.id] = doc.data().status;
+        if (doc.data().status === "occupied" && devEmails.includes(auth.currentUser?.email)) {
+            const devDiv = document.createElement('div');
+            devDiv.className = 'dev-item';
+            devDiv.innerHTML = `Locker #${doc.id} <button class="btn-unlock" onclick="unlockLocker('${doc.id}')">UNLOCK</button>`;
+            occList.appendChild(devDiv);
+        }
+    });
+    if (occList.innerHTML === '') occList.innerHTML = "No occupied slots.";
+    
+    for (let i = 1; i <= 50; i++) {
+        const status = lockerData[i] || "available";
+        const div = document.createElement('div');
+        div.className = `slot ${status}`;
+        div.innerText = i;
+        if (status === "available") {
+            div.onclick = () => { 
+                selectedSlot = i; 
+                document.getElementById('modal-title').innerText = "Locker #" + i; 
+                document.getElementById('payment-modal').style.display = 'flex'; 
+            };
+        }
+        grid.appendChild(div);
+    }
+  });
+
+  // UNLOCK FUNCTION
+  window.unlockLocker = async (num) => {
+    if (confirm(`Unlock Locker #${num} and make it available?`)) {
+        await deleteDoc(doc(db, "lockers", String(num)));
+        alert(`Locker #${num} is now Available.`);
+    }
+  };
+
+  function syncRequests() {
+    onSnapshot(query(collection(db, "requests"), where("status", "==", "pending")), (snapshot) => {
+        const list = document.getElementById('request-list');
+        list.innerHTML = snapshot.empty ? "No new requests." : "";
+        snapshot.forEach(reqDoc => {
+            const data = reqDoc.data();
+            const div = document.createElement('div');
+            div.className = 'dev-item';
+            div.innerHTML = `Locker #${data.locker} - ${data.userEmail}<br><button style="background:#28a745; color:white; border:none; padding:8px; margin-top:5px; width:100%; border-radius:5px;" onclick="approveRequest('${reqDoc.id}', '${data.locker}')">APPROVE & LOCK</button>`;
+            list.appendChild(div);
+        });
+    });
+  }
+
+  window.approveRequest = async (reqId, lockerNum) => {
+    try {
+        await setDoc(doc(db, "lockers", String(lockerNum)), { status: "occupied" });
+        await deleteDoc(doc(db, "requests", reqId)); 
+        alert(`Approved! Locker #${lockerNum} is now Red/Occupied.`);
+    } catch (e) { alert("Error: " + e.message); }
+  };
+
+  document.getElementById('submitPayBtn').onclick = async () => {
+    if (!document.getElementById('receipt-upload').files[0]) return alert("Please upload receipt.");
+    await addDoc(collection(db, "requests"), { locker: selectedSlot, userEmail: auth.currentUser.email, status: "pending" });
+    await setDoc(doc(db, "lockers", String(selectedSlot)), { status: "pending" });
+    document.getElementById('payment-modal').style.display = 'none';
+    alert("Sent! Waiting for approval.");
+  };
 
   onAuthStateChanged(auth, (user) => {
     if (user) {
         document.getElementById('auth-section').classList.add('hidden');
         document.getElementById('dashboard').classList.remove('hidden');
-        if (developers.includes(user.email)) document.getElementById('dev-tag').style.display = 'inline';
-    } else {
-        document.getElementById('auth-section').classList.remove('hidden');
-        document.getElementById('dashboard').classList.add('hidden');
+        if (devEmails.includes(user.email)) {
+            document.getElementById('admin-panel').style.display = 'block';
+            document.getElementById('dev-tag').style.display = 'inline';
+            syncRequests();
+        }
     }
   });
 
-  window.toggleAuth = () => {
-    const reg = document.getElementById('reg-fields');
-    reg.classList.toggle('hidden');
-    document.getElementById('authBtn').innerText = reg.classList.contains('hidden') ? "LOGIN TO ACCESS" : "CREATE ACCOUNT";
-  };
-
+  window.toggleAuth = () => { document.getElementById('reg-fields').classList.toggle('hidden'); };
   document.getElementById('authBtn').onclick = async () => {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
-    const isReg = !document.getElementById('reg-fields').classList.contains('hidden');
     try {
-      if (!isReg) await signInWithEmailAndPassword(auth, email, password);
-      else {
-        const res = await createUserWithEmailAndPassword(auth, email, password);
-        await setDoc(doc(db, "users", res.user.uid), {
-          fullName: document.getElementById('fullName').value,
-          phone: document.getElementById('phone').value,
-          email: email
-        });
-      }
+        if (document.getElementById('reg-fields').classList.contains('hidden')) await signInWithEmailAndPassword(auth, email, password);
+        else await createUserWithEmailAndPassword(auth, email, password);
     } catch (e) { alert(e.message); }
   };
-
   window.logoutUser = () => signOut(auth);
-  window.showPayment = (plan, price) => {
-    document.getElementById('plan-name').innerText = plan;
-    document.getElementById('plan-price').innerText = "PhP " + price;
-    document.getElementById('payment-modal').style.display = 'flex';
-  };
 </script>
 </body>
 </html>
