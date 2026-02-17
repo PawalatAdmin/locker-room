@@ -1,22 +1,170 @@
-<style>
-    .price-card { 
-        background: #333; 
-        padding: 20px; /* Larger padding for easier finger tapping */
-        border-radius: 12px; 
-        text-align: center; 
-        border: 1px solid #444; 
-        cursor: pointer; 
-        -webkit-tap-highlight-color: transparent; /* Removes the blue flash on mobile */
-    }
-    .price-card:active {
-        background: #444;
-        border-color: #ffcc00;
-    }
-</style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PAWALAT - Locker Room Access</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #1a1a1a; color: white; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { background: #262626; padding: 30px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.6); }
+        h1 { color: #ffcc00; margin: 0; letter-spacing: 2px; }
+        .slogan { font-style: italic; color: #aaa; font-size: 0.8rem; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #444; box-sizing: border-box; background: #333; color: white; }
+        button { width: 100%; padding: 14px; background: #ffcc00; border: none; font-weight: bold; cursor: pointer; border-radius: 6px; margin-top: 15px; }
+        
+        #dashboard { display: none; text-align: left; max-width: 800px; width: 95%; margin: 20px; }
+        .card { background: #262626; padding: 20px; border-radius: 12px; margin-bottom: 15px; border-left: 5px solid #ffcc00; }
+        
+        /* Developer UI */
+        .admin-card { background: #1e3a5f; border-left: 5px solid #00d4ff; display: none; padding: 20px; border-radius: 12px; margin-bottom: 15px; }
+        .dev-badge { background: #00d4ff; color: #1a1a1a; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; vertical-align: middle; }
 
-<div class="price-grid">
-    <div class="price-card" role="button" onclick="showPayment('1 Week', '79.00')">1 Week <b>PhP 79.00</b></div>
-    <div class="price-card" role="button" onclick="showPayment('1 Month', '279.00')">1 Month <b>PhP 279.00</b></div>
-    <div class="price-card" role="button" onclick="showPayment('6 Months', '779.00')">6 Months <b>PhP 779.00</b></div>
-    <div class="price-card" role="button" onclick="showPayment('1 Year', '1,779.00')">1 Year <b>PhP 1,779.00</b></div>
-</div>
+        .price-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .price-card { background: #333; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #444; cursor: pointer; }
+        .price-card b { color: #ffcc00; display: block; }
+        
+        /* Payment Modal */
+        #payment-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-box { background: #262626; padding: 25px; border-radius: 15px; text-align: center; border: 2px solid #ffcc00; width: 320px; }
+        .gcash-qr { width: 100%; border-radius: 10px; margin: 15px 0; border: 5px solid white; box-sizing: border-box; }
+        
+        .btn-paid { background: #28a745; color: white; }
+        .btn-logout { background: #ff4444; width: auto; padding: 8px 15px; float: right; color: white; margin-bottom: 10px; }
+        .hidden { display: none; }
+        .toggle { margin-top: 20px; font-size: 0.85rem; color: #ffcc00; cursor: pointer; text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+    <div id="auth-section" class="container">
+        <h1>PAWALAT</h1>
+        <div class="slogan">"kung sain mapapagaan ang gabat mong dara!"</div>
+        <p id="status-msg">Log in to your account</p>
+
+        <div id="reg-fields" class="hidden">
+            <input type="text" id="fullName" placeholder="Full Name">
+            <input type="text" id="phone" placeholder="Phone Number">
+            <input type="number" id="age" placeholder="Age">
+            <input type="text" id="address" placeholder="Address">
+        </div>
+
+        <input type="email" id="email" placeholder="Email Address">
+        <input type="password" id="password" placeholder="Password">
+        
+        <button id="authBtn">LOGIN TO ACCESS</button>
+        <div class="toggle" id="toggleView">Need an account? Register here</div>
+    </div>
+
+    <div id="dashboard">
+        <button class="btn-logout" onclick="logoutUser()">LOGOUT</button>
+        <h1>PAWALAT <span id="dev-tag" class="dev-badge" style="display:none;">DEVELOPER</span></h1>
+        <div class="slogan">"kung sain mapapagaan ang gabat mong dara!"</div>
+
+        <div id="admin-panel" class="admin-card">
+            <h3>Developer Control Panel</h3>
+            <p>Welcome, Admin. Access user data in the console.</p>
+            <button onclick="window.open('https://console.firebase.google.com/')" style="width:auto; padding:10px;">Open Firebase Console</button>
+        </div>
+
+        <div class="card">
+            <h3>Subscription Plans</h3>
+            <div class="price-grid">
+                <div class="price-card" onclick="showPayment('1 Week', '79.00')">1 Week <b>PhP 79.00</b></div>
+                <div class="price-card" onclick="showPayment('1 Month', '279.00')">1 Month <b>PhP 279.00</b></div>
+                <div class="price-card" onclick="showPayment('6 Months', '779.00')">6 Months <b>PhP 779.00</b></div>
+                <div class="price-card" onclick="showPayment('1 Year', '1,779.00')">1 Year <b>PhP 1,779.00</b></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Locker Rules & Terms</h3>
+            <ul style="font-size: 0.85rem; line-height: 1.6;">
+                <li>Secure your belongings: Lock your locker before leaving.</li>
+                <li>Respect others' lockers: Don't tamper without permission.</li>
+                <li>Liability: Not responsible for lost or stolen items.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="payment-modal">
+        <div class="modal-box">
+            <h2 id="plan-name" style="color:#ffcc00; margin-bottom:5px;">Plan</h2>
+            <p>Total: <b id="plan-price">PhP 0.00</b></p>
+            <img src="https://raw.githubusercontent.com/PawalatAdmin/locker-room/main/58e9eda6-cbbb-46ca-8275-b1dcda0b5a1e.jpg" class="gcash-qr" alt="GCash QR">
+            <p><b>MA*Y RO*E L.</b><br><small>0985 801 ****</small></p>
+            <button class="btn-paid" onclick="window.location.href='https://forms.gle/UMAnVBHDefJ1S824A'">I'VE PAID</button>
+            <button onclick="document.getElementById('payment-modal').style.display='none'" style="background:none; color:#aaa; border:none; margin-top:10px; cursor:pointer;">Cancel</button>
+        </div>
+    </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBpfwXy5BXCMGJEF7j-IFbv9Z-YFs_UQsE",
+    authDomain: "pawalat-9ab8b.firebaseapp.com",
+    projectId: "pawalat-9ab8b",
+    storageBucket: "pawalat-9ab8b.firebasestorage.app",
+    messagingSenderId: "407185284937",
+    appId: "1:407185284937:web:ec6f401e27dd891fa80498"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const developers = ["drawdrew79@gmail.com", "danicapadua754@gmail.com"];
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+        document.getElementById('auth-section').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        document.body.style.alignItems = 'flex-start';
+        if (developers.includes(user.email)) {
+            document.getElementById('admin-panel').style.display = 'block';
+            document.getElementById('dev-tag').style.display = 'inline-block';
+        }
+    } else {
+        document.getElementById('auth-section').style.display = 'block';
+        document.getElementById('dashboard').style.display = 'none';
+        document.body.style.alignItems = 'center';
+    }
+  });
+
+  document.getElementById('toggleView').onclick = () => {
+    const reg = document.getElementById('reg-fields');
+    const btn = document.getElementById('authBtn');
+    reg.classList.toggle('hidden');
+    btn.innerText = reg.classList.contains('hidden') ? "LOGIN TO ACCESS" : "CREATE ACCOUNT";
+    document.getElementById('status-msg').innerText = reg.classList.contains('hidden') ? "Log in to your account" : "Register your details";
+  };
+
+  document.getElementById('authBtn').onclick = async () => {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    try {
+      if (document.getElementById('authBtn').innerText.includes("LOGIN")) {
+        await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        const res = await createUserWithEmailAndPassword(auth, email, password);
+        await setDoc(doc(db, "users", res.user.uid), {
+          fullName: document.getElementById('fullName').value,
+          phone: document.getElementById('phone').value,
+          email: email,
+          role: developers.includes(email) ? "developer" : "customer"
+        });
+      }
+    } catch (e) { alert(e.message); }
+  };
+
+  window.logoutUser = () => signOut(auth);
+  window.showPayment = (plan, price) => {
+    document.getElementById('plan-name').innerText = plan;
+    document.getElementById('plan-price').innerText = "PhP " + price;
+    document.getElementById('payment-modal').style.display = 'flex';
+  };
+</script>
+</body>
+</html>
